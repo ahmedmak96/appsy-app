@@ -158,3 +158,30 @@ describe('POST /api/games/search', function () {
             });
     });
 });
+
+describe('POST /api/games/populate', function () {
+    it('should populate the database and return the expected summary properties', function (done) {
+        request(app)
+            .post('/api/games/populate')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(201)
+            .end(async (err, res) => {
+                if (err) return done(err);
+    
+                const body = res.body;
+
+                assert(body.hasOwnProperty('message'), 'Missing message property');
+                assert(body.hasOwnProperty('total'), 'Missing total property');
+                assert(body.hasOwnProperty('inserted'), 'Missing inserted property');
+                assert(body.hasOwnProperty('skipped'), 'Missing skipped property');
+
+                assert.strictEqual(body.message, 'Database populated');
+                assert.strictEqual(typeof body.total, 'number');
+                assert.strictEqual(typeof body.inserted, 'number');
+                assert.strictEqual(typeof body.skipped, 'number');
+
+                done();
+            });
+    });
+});

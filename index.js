@@ -1,7 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { Op } = require("sequelize");
+const { Op } = require('sequelize');
 const db = require('./models');
+const { populateGames } = require('./utils/populate');
 
 const app = express();
 
@@ -70,6 +71,19 @@ app.post('/api/games/search', (req, res) => {
       console.log('***There was an error searching games', JSON.stringify(err));
       return res.status(500).send(err);
     });
+});
+
+/**
+ * Populate DB with apps from iOS and Android feeds
+ */
+app.post('/api/games/populate', async (req, res) => {
+  try {
+    const result = await populateGames();
+    res.status(201).send({ message: 'Database populated', ...result });
+  } catch (err) {
+    console.log('*** Error populating games:', err);
+    res.status(500).send({ error: 'Failed to populate database' });
+  }
 });
 
 app.listen(3000, () => {

@@ -18,6 +18,9 @@ module.exports = (sequelize, DataTypes) => {
       {
         fields: ['name', 'platform'],
       },
+      {
+        fields: ['platform', 'storeId'],
+      },
     ],
   });
   return Game;
