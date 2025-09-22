@@ -7,6 +7,18 @@ module.exports = (sequelize, DataTypes) => {
     bundleId: DataTypes.STRING,
     appVersion: DataTypes.STRING,
     isPublished: DataTypes.BOOLEAN,
-  }, {});
+  }, {
+    indexes: [
+      {
+        fields: ['name'],
+      },
+      {
+        fields: ['platform'],
+      },
+      {
+        fields: ['name', 'platform'],
+      },
+    ],
+  });
   return Game;
 };

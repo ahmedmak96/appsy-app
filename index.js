@@ -52,6 +52,26 @@ app.put('/api/games/:id', (req, res) => {
     });
 });
 
+app.post('/api/games/search', (req, res) => {
+  const { name, platform } = req.body;
+
+  const filter = {};
+
+  if (name) {
+    filter.name = { [Op.like]: `%${name}%` };
+  }
+  if (platform) {
+    filter.platform = platform;
+  }
+
+  return db.Game.findAll({ where: filter })
+    .then(games => res.send(games))
+    .catch((err) => {
+      console.log('***There was an error searching games', JSON.stringify(err));
+      return res.status(500).send(err);
+    });
+});
+
 app.listen(3000, () => {
   console.log('Server is up on port 3000');
 });
