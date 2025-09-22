@@ -63,8 +63,72 @@ Many other applications at Voodoo will use consume this API.
 We are planning to put this project in production. According to you, what are the missing pieces to make this project production ready? 
 Please elaborate an action plan.
 
+## Production-Readiness Steps
+
+To make this project robust, secure, and maintainable for production, follow these prioritized steps:
+
+1. **Prevent duplicates & ensure data integrity**
+
+   - Add a **unique composite index** on `platform + storeId`.
+   - Implement **input validation** for all app data (`name`, `storeId`, `platform`, URLs, version).
+   - Wrap bulk inserts in **transactions**.
+
+2. **Make ingestion reliable**
+
+   - Ensure `/populate` is **idempotent** (re-running does not create duplicates).
+   - Add **retry logic** for failed S3 fetches or network errors.
+
+3. **Optimize performance for large datasets**
+
+   - Implement **bulk insert/upsert** for JSON files.
+   - Add **indexes** on searchable fields (`name`, `platform`).
+   - Implement **pagination** for search endpoints (limit + offset).
+
+4. **Secure the API**
+
+   - Add **authentication and authorization** for internal endpoints.
+   - Enforce **HTTPS**.
+   - Sanitize all inputs to prevent injections.
+
+5. **Ensure maintainability**
+
+   - Separate code into layers:
+     - **DTOs** for input/output data structures.
+     - **Service/logic layer** for core business rules (ingestion, deduplication, search).
+     - **Repository/DB layer** for database access.
+
+6. **Observability & monitoring**
+
+   - Implement **structured logging** for API requests and ingestion operations.
+   - Add **metrics and alerts** for failures, ingestion counts, and DB performance.
+
+7. **Testing & deployment**
+
+   - Write **unit, integration, and end-to-end tests**.
+   - Deploy to a **staging environment** first.
+   - Set up a **CI/CD pipeline** for automated builds, tests, and production deployment.
+
+8. **Data safety & backups**
+   - Schedule **regular database backups** and ensure a recovery plan is in place.
+
 #### Question 2:
+
 Let's pretend our data team is now delivering new files every day into the S3 bucket, and our service needs to ingest those files
 every day through the populate API. Could you describe a suitable solution to automate this? Feel free to propose architectural changes.
 
+1. **S3 Event Notification**
+   - S3 triggers a Lambda function whenever a new JSON file is uploaded.
 
+2. **Lambda Function**
+   - Receives the event containing the file key.  
+   - Sends an HTTP POST request to `/api/games/populate` with the S3 file URL.  
+   - Handles retries if the API call fails.
+
+3. **Populate API**
+   - Fetches the file from S3 (not from config but payload).  
+   - Validates and deduplicates app data.  
+   - Performs bulk insert/upsert into the database.  
+   - Ensures **idempotency** so repeated processing of the same file is safe.
+
+4. **Monitoring & Alerts**
+   - Logs Lambda invocations and API responses.  
